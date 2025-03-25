@@ -8,6 +8,7 @@ import com.game.CalorieAdventureGame.MainGame;
 import com.game.CalorieAdventureGame.entities.Player;
 import com.game.CalorieAdventureGame.entities.Food;
 import java.util.ArrayList;
+import com.badlogic.gdx.math.MathUtils;
 
 public class GameScreen implements Screen {
     private MainGame game;
@@ -25,6 +26,14 @@ public class GameScreen implements Screen {
     @Override
     public void show() {
         // Initialize or reset game elements here
+        spawnFood();
+    }
+
+    private void spawnFood() {
+        // Example logic to spawn food at random positions
+        for (int i = 0; i < 5; i++) {
+            foods.add(new Food(MathUtils.random(0, Gdx.graphics.getWidth()), Gdx.graphics.getHeight()));
+        }
     }
 
     @Override
