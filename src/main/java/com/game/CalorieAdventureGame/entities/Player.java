@@ -11,7 +11,7 @@ public class Player {
     private Texture texture;
     private float x, y;
     private Rectangle bounds;
-    private static final float SPEED = 300f;
+    private static final float SPEED = 350f;
     private static final float LANE_WIDTH = Gdx.graphics.getWidth() / 3f;
     private static final float scale = 0.2f;
 
