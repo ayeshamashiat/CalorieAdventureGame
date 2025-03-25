@@ -1,21 +1,22 @@
 package com.game.CalorieAdventureGame.screens;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.game.CalorieAdventureGame.MainGame;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 public class MenuScreen implements Screen {
     private MainGame game;
+    private Stage stage;
     private TextButton playButton;
     private TextButton exitButton;
-    private Stage stage;
     private BitmapFont font;
 
     public MenuScreen(MainGame game) {
@@ -39,20 +40,18 @@ public class MenuScreen implements Screen {
         stage.addActor(table);
 
         // Button listeners
-        playButton.addListener(event -> {
-            if (event.toString().equals("touchDown")) {
+        playButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(new GameScreen(game));  // Transition to the game screen
-                return true;
             }
-            return false;
         });
 
-        exitButton.addListener(event -> {
-            if (event.toString().equals("touchDown")) {
+        exitButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
                 Gdx.app.exit();  // Exit the application
-                return true;
             }
-            return false;
         });
     }
 
