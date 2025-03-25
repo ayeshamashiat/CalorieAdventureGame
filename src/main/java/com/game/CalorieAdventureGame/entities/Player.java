@@ -13,7 +13,7 @@ public class Player {
     private Rectangle bounds;
     private static final float SPEED = 300f;
     private static final float LANE_WIDTH = Gdx.graphics.getWidth() / 3f;
-    private static final float scale = 0.1f;
+    private static final float scale = 0.2f;
 
     public Player() {
         texture = new Texture("cat.png");
