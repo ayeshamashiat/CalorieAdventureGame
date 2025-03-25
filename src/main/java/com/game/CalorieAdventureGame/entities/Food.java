@@ -31,6 +31,11 @@ public class Food {
         foodRectangle = new Rectangle(x, y, foodTexture.getWidth(), foodTexture.getHeight());
     }
 
+    public Food(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
     public void update(float delta) {
         // Move the food item downwards
         y -= speed * delta;
