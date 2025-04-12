@@ -1,27 +1,22 @@
 import java.awt.*;
 
 public abstract class GameObject {
-    protected int x, y, width, height;
-    protected int speed = 4;
+    protected int x, y;
 
     public GameObject(int x, int y) {
         this.x = x;
         this.y = y;
-        this.width = 50;
-        this.height = 50;
-    }
-
-    public void update() {
-        y += speed;
     }
 
     public abstract void draw(Graphics g);
 
-    public Rectangle getBounds() {
-        return new Rectangle(x, y, width, height);
-    }
+    public abstract void update();
 
     public boolean isOutOfScreen() {
-        return y > 600;
+        return y > 600; // Check if the object is out of the screen
+    }
+
+    public Rectangle getBounds() {
+        return new Rectangle(x, y, 50, 50); // Bounding box for collision detection
     }
 }

@@ -1,70 +1,44 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class GamePanel extends JPanel implements Runnable, KeyListener {
-
-    private Thread gameThread;
-    private boolean running = true;
-    private JButton restartButton;
-
-
-    private final int WIDTH = 800, HEIGHT = 600;
-    private Player player;
-    private ArrayList<GameObject> objects = new ArrayList<>();
-
-    private int healthyPoints = 0;
-    private int unhealthyPoints = 0;
-
-    private long startTime;
-    private final int GAME_DURATION = 60; // seconds
-
+    private int score = 0;
     private boolean gameOver = false;
-    private String gameResult = "";
+    private Runnable onGameOver;
+    private List<GameObject> objects = new ArrayList<>();
+    private Player player;
+    private boolean movingLeft = false;
+    private boolean movingRight = false;
+    private long gameStartTime = System.currentTimeMillis(); // Track when the game started
 
-    public GamePanel() {
-        setPreferredSize(new Dimension(WIDTH, HEIGHT));
+    public GamePanel(Runnable onGameOver) {
+        this.onGameOver = onGameOver;
+        setPreferredSize(new Dimension(800, 600));
         setBackground(Color.BLACK);
         setFocusable(true);
-        requestFocus();
+        requestFocusInWindow();
+
+        player = new Player();
         addKeyListener(this);
-
-        player = new Player(WIDTH / 2, HEIGHT - 100);
-        startTime = System.currentTimeMillis();
-
-        gameThread = new Thread(this);
-        gameThread.start();
-
-        restartButton = new JButton("Restart");
-        restartButton.setBounds(350, 320, 100, 40);
-        restartButton.setVisible(false);
-        restartButton.addActionListener(e -> restartGame());
-        this.setLayout(null);
-        this.add(restartButton);
-
+        new Thread(this).start();
     }
 
     @Override
     public void run() {
         long lastSpawnTime = System.currentTimeMillis();
 
-        while (running) {
-            if (!gameOver) {
-                update();
-                repaint();
+        while (!gameOver) {
+            updateGame();
+            repaint();
 
-                if (System.currentTimeMillis() - lastSpawnTime >= 2000) {
-                    spawnRandomObject();
-                    lastSpawnTime = System.currentTimeMillis();
-                }
-
-                long elapsed = (System.currentTimeMillis() - startTime) / 1000;
-                if (elapsed >= GAME_DURATION) {
-                    endGame();
-                }
+            if (System.currentTimeMillis() - lastSpawnTime >= 2000) { // Spawn every 2 seconds
+                spawnRandomObject();
+                lastSpawnTime = System.currentTimeMillis();
             }
 
             try {
@@ -73,150 +47,126 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
                 e.printStackTrace();
             }
         }
+
+        // Notify the GameWindow when the game ends
+        if (onGameOver != null) {
+            onGameOver.run();
+        }
     }
 
-    public void update() {
-        player.update();
+    private void updateGame() {
+        player.update(); // Update the player's position
 
-        Iterator<GameObject> it = objects.iterator();
-        while (it.hasNext()) {
-            GameObject obj = it.next();
-            obj.update();
+        for (int i = 0; i < objects.size(); i++) {
+            GameObject obj = objects.get(i);
+            obj.update(); // Update the object's position
 
-            if (obj.getBounds().intersects(player.getBounds())) {
-                if (obj instanceof HealthyFood) healthyPoints++;
-                else if (obj instanceof UnhealthyFood) unhealthyPoints++;
-                else if (obj instanceof Obstacle) {
-                    gameOver = true;
-                    gameResult = "Game Over: Hit an Obstacle!";
-                    return;
+            // Check for collisions
+            if (player.getBounds().intersects(obj.getBounds())) {
+                if (obj instanceof HealthyFood) {
+                    score += 10; // Gain points for healthy food
+                } else if (obj instanceof UnhealthyFood) {
+                    endGame(); // End the game if the player hits unhealthy food
+                } else if (obj instanceof Dumbbell) {
+                    score *= 10; // Multiply the score by 10
                 }
-                it.remove();
-            } else if (obj.isOutOfScreen()) {
-                it.remove();
+                objects.remove(i); // Remove the object after collision
+                i--;
+            }
+
+            // Remove objects that fall out of the screen
+            if (obj.isOutOfScreen()) {
+                objects.remove(i);
+                i--;
             }
         }
     }
 
-    private void endGame() {
-        gameOver = true;
-        if (healthyPoints > unhealthyPoints)
-            gameResult = "You Win!";
-        else{
-            gameResult = "You Lose!";
-        }
-        restartButton.setVisible(true);
-        saveHighScore();
-    }
-
-    private void restartGame() {
-        healthyPoints = 0;
-        unhealthyPoints = 0;
-        startTime = System.currentTimeMillis();
-        gameOver = false;
-        gameResult = "";
-        objects.clear();
-        restartButton.setVisible(false);
-        SoundPlayer.play("restart.mp3", true);
-    }
-    
-
     private void spawnRandomObject() {
-        int laneWidth = WIDTH / 3;
-        int lane = new Random().nextInt(3);
-        int x = lane * laneWidth + (laneWidth - 50) / 2;
+        Random rand = new Random();
+        int lane = rand.nextInt(3); // Randomly choose one of the three lanes
+        int x = lane * (800 / 3) + (800 / 6); // Center of the lane
 
-        int choice = new Random().nextInt(10);
-        if (choice < 4)
-            objects.add(new HealthyFood(x, 0));
-        else if (choice < 8)
-            objects.add(new UnhealthyFood(x, 0));
-        else
-            objects.add(new Obstacle(x, 0));
+        GameObject obj;
+        int chance = rand.nextInt(100); // Generate a random number between 0 and 99
+
+        // Ensure dumbbells do not appear in the first 20 seconds of the game
+        long elapsedTime = System.currentTimeMillis() - gameStartTime;
+        if (elapsedTime < 20000) { // 20 seconds
+            if (rand.nextBoolean()) {
+                obj = new HealthyFood(x, 0); // Spawn healthy food
+            } else {
+                obj = new UnhealthyFood(x, 0); // Spawn unhealthy food
+            }
+        } else {
+            // After 20 seconds, allow dumbbells to spawn with a lower probability
+            if (chance < 80) { // 80% chance to spawn healthy or unhealthy food
+                if (rand.nextBoolean()) {
+                    obj = new HealthyFood(x, 0); // Spawn healthy food
+                } else {
+                    obj = new UnhealthyFood(x, 0); // Spawn unhealthy food
+                }
+            } else { // 20% chance to spawn a dumbbell
+                obj = new Dumbbell(x, 0); // Spawn a dumbbell
+            }
+        }
+
+        objects.add(obj);
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void endGame() {
+        gameOver = true;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        drawLanes(g);
 
+        // Draw player
         player.draw(g);
 
+        // Draw game objects
         for (GameObject obj : objects) {
             obj.draw(g);
         }
 
-        drawScore(g);
-
-        if (gameOver) {
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 36));
-            g.drawString(gameResult, WIDTH / 2 - 120, HEIGHT / 2);
-        }
-    }
-
-    private void drawLanes(Graphics g) {
-        g.setColor(Color.DARK_GRAY);
-        int laneWidth = WIDTH / 3;
-        for (int i = 1; i < 3; i++) {
-            g.drawLine(i * laneWidth, 0, i * laneWidth, HEIGHT);
-        }
-    }
-
-    private void drawScore(Graphics g) {
+        // Draw score
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 18));
-        g.drawString("Healthy: " + healthyPoints, 10, 20);
-        g.drawString("Unhealthy: " + unhealthyPoints, 10, 40);
+        g.drawString("Healthy: " + score, 10, 20);
 
-        long elapsed = (System.currentTimeMillis() - startTime) / 1000;
-        g.drawString("Time Left: " + Math.max(0, GAME_DURATION - elapsed), 650, 20);
-        g.drawString("High Score: " + loadHighScore(), 650, 40);
+        // Draw game-over message
+        if (gameOver) {
+            g.setColor(Color.RED);
+            g.setFont(new Font("Arial", Font.BOLD, 36));
+            g.drawString("Game Over!", 300, 300);
+        }
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-        player.keyPressed(e);
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {}
-
-    @Override
-    public void keyTyped(KeyEvent e) {}
-
-    private void saveHighScore() {
-        try {
-            int score = healthyPoints - unhealthyPoints;
-            File file = new File("highscore.txt");
-            int oldHigh = 0;
-            if (file.exists()) {
-                Scanner sc = new Scanner(file);
-                if (sc.hasNextInt()) oldHigh = sc.nextInt();
-                sc.close();
-            }
-
-            if (score > oldHigh) {
-                PrintWriter pw = new PrintWriter(file);
-                pw.println(score);
-                pw.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
+            player.moveLeft();
+        } else if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) {
+            player.moveRight();
         }
     }
 
-    private int loadHighScore() {
-        try {
-            File file = new File("highscore.txt");
-            if (!file.exists()) return 0;
-            Scanner sc = new Scanner(file);
-            int hs = sc.hasNextInt() ? sc.nextInt() : 0;
-            sc.close();
-            return hs;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 0;
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A) {
+            movingLeft = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D) {
+            movingRight = false;
         }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // Not used
     }
 }

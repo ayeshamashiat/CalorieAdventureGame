@@ -3,37 +3,37 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class UnhealthyFood extends GameObject {
+public class Dumbbell extends GameObject {
     private BufferedImage image;
 
-    public UnhealthyFood(int x, int y) {
+    public Dumbbell(int x, int y) {
         super(x, y);
         loadImage();
     }
 
     private void loadImage() {
         try {
-            // Load the image for unhealthy food
-            image = ImageIO.read(getClass().getResource("/resources/unhealthy_food.png"));
+            // Load the dumbbell image from the resources folder
+            image = ImageIO.read(getClass().getResource("/resources/dumbbell.png"));
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error: Could not load unhealthy food image.");
+            System.out.println("Error: Could not load dumbbell image.");
         }
     }
 
     @Override
     public void draw(Graphics g) {
         if (image != null) {
-            g.drawImage(image, x, y, 50, 50, null); // Draw the image
+            g.drawImage(image, x, y, 50, 50, null); // Draw the dumbbell image
         } else {
             // Fallback if the image is not loaded
-            g.setColor(Color.RED);
+            g.setColor(Color.GRAY);
             g.fillRect(x, y, 50, 50);
         }
     }
 
     @Override
     public void update() {
-        y += 5; // Move the object down
+        y += 10; // Move the dumbbell down faster than food
     }
 }
