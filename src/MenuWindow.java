@@ -41,10 +41,11 @@ public class MenuWindow extends JFrame {
     private static class MenuPanel extends JPanel implements Runnable, KeyListener, MouseListener, MouseMotionListener {
         private MenuWindow parent;
         private int selectedIndex = 0;
-        private final String[] menuOptions = {"NEW GAME", "HIGH SCORES", "QUIT GAME"};
+        private final String[] menuOptions = {"NEW GAME", "HIGH SCORES", "INSTRUCTIONS", "QUIT GAME"};
         
-        // High scores overlay state
+        // Overlay tabs state
         private boolean showingHighScores = false;
+        private boolean showingInstructions = false;
         private List<String> highScores = new ArrayList<>();
         
         // Highlight states for showing player where they sit
@@ -62,7 +63,7 @@ public class MenuWindow extends JFrame {
         
         // Fonts
         private Font titleFont = new Font("Courier New", Font.BOLD, 52);
-        private Font optionFont = new Font("Courier New", Font.BOLD, 28);
+        private Font optionFont = new Font("Courier New", Font.BOLD, 26);
         private Font scoreFont = new Font("Courier New", Font.BOLD, 20);
         private Font footerFont = new Font("Courier New", Font.ITALIC, 14);
 
@@ -98,6 +99,7 @@ public class MenuWindow extends JFrame {
             this.highlightName = name;
             this.highlightScore = score;
             loadHighScoresCache();
+            this.showingInstructions = false; // Make sure instructions are closed
             this.showingHighScores = true;
             repaint();
         }
@@ -126,10 +128,8 @@ public class MenuWindow extends JFrame {
                 }
             });
             
-            // Note: We don't forcefully cap at 10 if we want to ensure the player sees exactly where they sit!
-            // But let's show top 12 so there's plenty of space, and if the player is lower, we'll keep them in view.
+            // Show top 12
             if (highScores.size() > 12) {
-                // If highlight is outside top 12, let's keep top 11 and append the player's row at 12th so they see where they sit!
                 int playerIndex = -1;
                 if (highlightName != null) {
                     for (int i = 0; i < highScores.size(); i++) {
@@ -143,7 +143,7 @@ public class MenuWindow extends JFrame {
                 
                 if (playerIndex >= 12) {
                     List<String> sub = new ArrayList<>(highScores.subList(0, 11));
-                    sub.add("... - 0"); // indicator line
+                    sub.add("... - 0");
                     sub.add(highScores.get(playerIndex) + " [Rank " + (playerIndex + 1) + "]");
                     highScores = sub;
                 } else {
@@ -223,13 +223,15 @@ public class MenuWindow extends JFrame {
 
             if (showingHighScores) {
                 drawHighScoresOverlay(g2d);
+            } else if (showingInstructions) {
+                drawInstructionsOverlay(g2d);
             } else {
                 drawMainMenu(g2d);
             }
         }
 
         private void drawMainMenu(Graphics2D g) {
-            int titleY = 140 + (int) (Math.sin(floatPhase) * 8);
+            int titleY = 135 + (int) (Math.sin(floatPhase) * 8);
 
             g.setFont(titleFont);
             g.setColor(new Color(30, 27, 75));
@@ -246,10 +248,10 @@ public class MenuWindow extends JFrame {
             int tagWidth = g.getFontMetrics().stringWidth(tag);
             g.drawString(tag, 400 - tagWidth / 2, titleY + 45);
 
-            // Menu choices
+            // Menu choices (4 options)
             g.setFont(optionFont);
             for (int i = 0; i < menuOptions.length; i++) {
-                int optY = 320 + i * 70;
+                int optY = 290 + i * 60; // Clean layout vertical space
                 boolean isSelected = (i == selectedIndex);
 
                 if (isSelected) {
@@ -268,7 +270,7 @@ public class MenuWindow extends JFrame {
             g.setFont(footerFont);
             g.setColor(new Color(100, 116, 139));
             String tip = "[Use UP/DOWN arrows & ENTER to choose | Or use Mouse]";
-            g.drawString(tip, 400 - g.getFontMetrics().stringWidth(tip) / 2, 530);
+            g.drawString(tip, 400 - g.getFontMetrics().stringWidth(tip) / 2, 545);
         }
 
         private void drawHighScoresOverlay(Graphics2D g) {
@@ -301,7 +303,6 @@ public class MenuWindow extends JFrame {
                     boolean isHighlight = false;
                     String cleanName = name;
                     
-                    // Strip custom Rank tags if added
                     if (name.contains(" [Rank")) {
                         cleanName = name.substring(0, name.indexOf(" [Rank"));
                     }
@@ -323,20 +324,18 @@ public class MenuWindow extends JFrame {
 
                     String prefix = (i + 1) + ". ";
                     if (name.contains("[Rank")) {
-                        prefix = ""; // Rank is already inside name
+                        prefix = "";
                     }
 
-                    // Setup entry color
                     if (isHighlight) {
-                        // Highlighting player's spot with dynamic glowing HSB neon green/cyan
                         float flash = (float) (Math.sin(floatPhase * 2) * 0.15 + 0.85);
                         g.setColor(Color.getHSBColor(0.33f, 0.9f, flash));
                     } else if (i == 0 && prefix.length() > 0) {
-                        g.setColor(new Color(253, 224, 71)); // Gold
+                        g.setColor(new Color(253, 224, 71));
                     } else if (i == 1 && prefix.length() > 0) {
-                        g.setColor(new Color(226, 232, 240)); // Silver
+                        g.setColor(new Color(226, 232, 240));
                     } else if (i == 2 && prefix.length() > 0) {
-                        g.setColor(new Color(249, 115, 22)); // Bronze
+                        g.setColor(new Color(249, 115, 22));
                     } else {
                         g.setColor(Color.WHITE);
                     }
@@ -344,14 +343,57 @@ public class MenuWindow extends JFrame {
                     g.drawString(prefix + name, 160, startY + i * 28);
                     g.drawString(val, 520, startY + i * 28);
 
-                    // Add dynamic YOU indicator pointing exactly where player sits!
                     if (isHighlight) {
                         g.setFont(footerFont);
                         g.drawString("◄ YOU!", 580, startY + i * 28 - 2);
-                        g.setFont(scoreFont); // Restore
+                        g.setFont(scoreFont);
                     }
                 }
             }
+
+            g.setFont(footerFont);
+            g.setColor(new Color(239, 68, 68));
+            String backTip = "[Click anywhere or press ESC to return to Menu]";
+            g.drawString(backTip, 400 - g.getFontMetrics().stringWidth(backTip) / 2, 510);
+        }
+
+        private void drawInstructionsOverlay(Graphics2D g) {
+            g.setColor(new Color(30, 41, 59, 245));
+            g.fillRect(100, 40, 600, 500);
+            
+            g.setColor(new Color(99, 102, 241));
+            g.drawRect(100, 40, 600, 500);
+            g.drawRect(104, 44, 592, 492);
+
+            g.setFont(optionFont);
+            g.setColor(new Color(253, 224, 71));
+            String title = "★ HOW TO PLAY ★";
+            g.drawString(title, 400 - g.getFontMetrics().stringWidth(title) / 2, 85);
+
+            g.setFont(scoreFont);
+            int yStart = 140;
+            int lineSpacing = 32;
+            
+            g.setColor(new Color(99, 102, 241));
+            g.drawString("CONTROLS:", 140, yStart);
+            g.setColor(Color.WHITE);
+            g.drawString("• Press A / D or ← / → to slide smoothly.", 140, yStart + lineSpacing);
+            
+            g.setColor(new Color(74, 222, 128));
+            g.drawString("GOAL & HEALTHY FOODS:", 140, yStart + 3 * lineSpacing);
+            g.setColor(Color.WHITE);
+            g.drawString("• Catch Healthy foods (🍎 🥦 🥕 🍌) to increase Score.", 140, yStart + 4 * lineSpacing);
+
+            g.setColor(new Color(239, 68, 68));
+            g.drawString("LIVES & JUNK FOODS:", 140, yStart + 6 * lineSpacing);
+            g.setColor(Color.WHITE);
+            g.drawString("• You start with 3 Lives. Hitting Junk costs a Life!", 140, yStart + 7 * lineSpacing);
+
+            g.setColor(new Color(253, 224, 71));
+            g.drawString("POWER-UP (DUMBBELL):", 140, yStart + 9 * lineSpacing);
+            g.setColor(Color.WHITE);
+            g.drawString("• Grants points (+50), doubles incoming scores,", 140, yStart + 10 * lineSpacing);
+            g.drawString("  and gives Junk Food IMMUNITY for 15 seconds!", 140, yStart + 11 * lineSpacing);
 
             g.setFont(footerFont);
             g.setColor(new Color(239, 68, 68));
@@ -366,6 +408,10 @@ public class MenuWindow extends JFrame {
                 highlightScore = -1;
                 return;
             }
+            if (showingInstructions) {
+                showingInstructions = false;
+                return;
+            }
 
             switch (selectedIndex) {
                 case 0: // NEW GAME
@@ -375,7 +421,10 @@ public class MenuWindow extends JFrame {
                     loadHighScoresCache();
                     showingHighScores = true;
                     break;
-                case 2: // QUIT GAME
+                case 2: // INSTRUCTIONS
+                    showingInstructions = true;
+                    break;
+                case 3: // QUIT GAME
                     System.exit(0);
                     break;
             }
@@ -384,9 +433,10 @@ public class MenuWindow extends JFrame {
         @Override
         public void keyPressed(KeyEvent e) {
             int key = e.getKeyCode();
-            if (showingHighScores) {
+            if (showingHighScores || showingInstructions) {
                 if (key == KeyEvent.VK_ESCAPE || key == KeyEvent.VK_ENTER || key == KeyEvent.VK_SPACE) {
                     showingHighScores = false;
+                    showingInstructions = false;
                     highlightName = null;
                     highlightScore = -1;
                     repaint();
@@ -410,8 +460,9 @@ public class MenuWindow extends JFrame {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (showingHighScores) {
+            if (showingHighScores || showingInstructions) {
                 showingHighScores = false;
+                showingInstructions = false;
                 highlightName = null;
                 highlightScore = -1;
                 repaint();
@@ -422,7 +473,7 @@ public class MenuWindow extends JFrame {
             int my = e.getY();
             
             for (int i = 0; i < menuOptions.length; i++) {
-                int optY = 320 + i * 70;
+                int optY = 290 + i * 60;
                 int optHeight = 35;
                 if (mx > 250 && mx < 550 && my > optY - optHeight && my < optY + 10) {
                     selectedIndex = i;
@@ -434,13 +485,13 @@ public class MenuWindow extends JFrame {
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            if (showingHighScores) return;
+            if (showingHighScores || showingInstructions) return;
 
             int mx = e.getX();
             int my = e.getY();
 
             for (int i = 0; i < menuOptions.length; i++) {
-                int optY = 320 + i * 70;
+                int optY = 290 + i * 60;
                 int optHeight = 35;
                 if (mx > 250 && mx < 550 && my > optY - optHeight && my < optY + 10) {
                     if (selectedIndex != i) {

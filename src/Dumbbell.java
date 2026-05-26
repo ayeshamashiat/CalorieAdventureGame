@@ -27,7 +27,6 @@ public class Dumbbell extends GameObject {
         
         // Sparkle Glow behind the dumbbell
         drawSparkles(g2d);
-        
         drawPixelArt(g2d);
     }
 
@@ -36,12 +35,10 @@ public class Dumbbell extends GameObject {
         int py = y + size/2;
         sparklePhase += 0.15;
         
-        // Pulsing halo glow
         int glowSize = size + (int) (Math.sin(sparklePhase) * 12);
-        g.setColor(new Color(253, 224, 71, 40)); // Golden soft yellow glow
+        g.setColor(new Color(253, 224, 71, 40));
         g.fillOval(px - glowSize/2, py - glowSize/2, glowSize, glowSize);
         
-        // Small floating golden stars
         g.setColor(new Color(254, 240, 138));
         int starDist = (int) (22 + Math.sin(sparklePhase) * 6);
         double angle1 = sparklePhase;
@@ -54,48 +51,38 @@ public class Dumbbell extends GameObject {
     private void drawPixelArt(Graphics2D g) {
         int px = x - size / 2;
         int py = y;
-        int p = size / 10; // Grid unit size (10x10 grid)
+        int p = size / 10;
 
-        // Draw shadow under the item
         g.setColor(new Color(0, 0, 0, 60));
         g.fillOval(px, py + size - 8, size, 8);
 
-        // Sway motion
         double sway = Math.sin(bobPhase + y * 0.05) * 3;
         px += (int) sway;
 
-        // Rotation
         java.awt.geom.AffineTransform oldTransform = g.getTransform();
         g.translate(px + size/2, py + size/2);
-        g.rotate(bobPhase * 0.4); // Spin faster!
+        g.rotate(bobPhase * 0.4);
         
         int rx = -size/2;
         int ry = -size/2;
 
-        // Draw Dumbbell Pixel Art (Sleek gray and steel design)
-        
-        // Steel Bar connecting the weights
-        g.setColor(new Color(156, 163, 175)); // Steel silver
+        g.setColor(new Color(156, 163, 175));
         g.fillRect(rx + 2*p, ry + 4*p, 6*p, 2*p);
         
-        // Left plate stack
-        g.setColor(new Color(55, 65, 81)); // Dark steel
+        g.setColor(new Color(55, 65, 81));
         g.fillRect(rx + p, ry + 2*p, 2*p, 6*p);
-        g.setColor(new Color(75, 85, 99)); // Medium steel
+        g.setColor(new Color(75, 85, 99));
         g.fillRect(rx + 2*p, ry + 3*p, p, 4*p);
         
-        // Right plate stack
-        g.setColor(new Color(55, 65, 81)); // Dark steel
+        g.setColor(new Color(55, 65, 81));
         g.fillRect(rx + 7*p, ry + 2*p, 2*p, 6*p);
-        g.setColor(new Color(75, 85, 99)); // Medium steel
+        g.setColor(new Color(75, 85, 99));
         g.fillRect(rx + 7*p, ry + 3*p, p, 4*p);
         
-        // Highlights on the plates
-        g.setColor(new Color(209, 213, 219)); // Light highlight
+        g.setColor(new Color(209, 213, 219));
         g.fillRect(rx + p, ry + 2*p, p, p);
         g.fillRect(rx + 7*p, ry + 2*p, p, p);
         
-        // Red tape in middle of bar
         g.setColor(new Color(239, 68, 68));
         g.fillRect(rx + 4*p, ry + 4*p, 2*p, 2*p);
 
@@ -103,8 +90,8 @@ public class Dumbbell extends GameObject {
     }
 
     @Override
-    public void update() {
-        y += 7; // Dumbbells fall faster as a challenging power-up
+    public void update(double speedMultiplier) {
+        y += (int) (7 * speedMultiplier); // scale falling dumbbell rate with speedMultiplier
         bobPhase += 0.08;
     }
 }

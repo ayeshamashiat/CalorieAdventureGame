@@ -14,7 +14,8 @@ public abstract class GameObject {
 
     public abstract void draw(Graphics g);
 
-    public abstract void update();
+    // Now accepts speed multiplier for progressive difficulty scaling
+    public abstract void update(double speedMultiplier);
 
     public String getType() {
         return type;

@@ -14,3 +14,4 @@ name - 0
 meow - 40
 meowoww - 20
 meee - 130
+milli - 340
