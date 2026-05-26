@@ -10,3 +10,7 @@ l - 10
 m - 0
 1stOne - 850123010
 h - 630010
+name - 0
+meow - 40
+meowoww - 20
+meee - 130
