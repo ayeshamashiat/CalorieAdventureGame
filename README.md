@@ -1,4 +1,4 @@
-# 🐱 Calorie Adventure 🥦
+# Calorie Adventure
 
 Welcome to **Calorie Adventure**—a high-fidelity, polished, 2D retro pixel-art game built entirely in vanilla Java (Swing/Java2D)! 
 
@@ -6,7 +6,7 @@ You control a cute, chubby cat on a mission to eat healthy, get fit, and avoid t
 
 ---
 
-## 🎮 Gameplay & Mechanics
+## Gameplay & Mechanics
 
 ### 1. The Goal
 Help our tabby cat eat the healthiest foods possible to raise your score while avoiding high-calorie junk foods. Catch power-up dumbbells to activate shields and boost your score!
@@ -33,11 +33,11 @@ The longer you survive and the more you catch, the harder the game gets:
 
 ---
 
-## 🍎 Food Varieties
+## Food Varieties
 
 Every single falling item is procedurally rendered using high-fidelity pixel-art drawing algorithms:
 
-| 🟢 Healthy Foods (+10 Pts) | 🔴 Junk Foods (-1 Life) |
+| Healthy Foods (+10 Pts) | Junk Foods (-1 Life) |
 | :--- | :--- |
 | 🍎 **Apple**: Red orb with green leaf & outline | 🍔 **Burger**: Layered gold bun, green lettuce & cheese |
 | 🥦 **Broccoli**: Dark green fluffy crown & stem | 🍕 **Pizza**: Triangular cheese slice with pepperoni |
@@ -48,7 +48,7 @@ Every single falling item is procedurally rendered using high-fidelity pixel-art
 
 ---
 
-## 🖥️ User Interface & Welcoming Screens
+## User Interface & Welcoming Screens
 
 - **Gradient Start Screen**: Beautiful logo **CALORIE ADVENTURE** changing color hues dynamically with floating silhouette backdrops.
 - **Hall of Heroes (High Scores)**: A sleek top score overlay panel that highlights exactly where your name sits, displaying a pulsing neon marker and `◄ YOU!` indicator showing your real-time calculated rank!
@@ -57,7 +57,7 @@ Every single falling item is procedurally rendered using high-fidelity pixel-art
 
 ---
 
-## 🕹️ Controls
+## Controls
 
 - **Slide Left**: `A` or `Left Arrow`
 - **Slide Right**: `D` or `Right Arrow`
@@ -66,7 +66,7 @@ Every single falling item is procedurally rendered using high-fidelity pixel-art
 
 ---
 
-## 🚀 How to Compile & Run
+## How to Compile & Run
 
 ### Prerequisites
 Make sure you have Java JDK (version 8 or higher, JDK 23 recommended) installed.
@@ -85,7 +85,7 @@ java -cp bin Main
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 ├── README.md               # Game Documentation
@@ -104,4 +104,4 @@ java -cp bin Main
 └── bin/                    # Compiled JVM bytecode binaries (.class files)
 ```
 
-Enjoy playing **Calorie Adventure**! Raise your score, dodge the junk, and help Catto lead a healthy, fit lifestyle! 🐾
+Enjoy playing **Calorie Adventure**! Raise your score, dodge the junk, and help Catto lead a healthy, fit lifestyle!
